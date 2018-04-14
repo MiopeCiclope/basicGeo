@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - geometry - catmull spline editor</title>
+		<title>basicGeo</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
@@ -27,14 +27,14 @@
 	<body>
 
 		<div id="container"></div>
-		<script src="static/js/three.js"></script>
+		<script src="../static/js/three.js"></script>
 
-		<script src="static/js/controls/DragControls.js"></script>
-		<script src="static/js/controls/OrbitControls.js"></script>
-		<script src="static/js/controls/TransformControls.js"></script>
+		<script src="../static/js/controls/DragControls.js"></script>
+		<script src="../static/js/controls/OrbitControls.js"></script>
+		<script src="../static/js/controls/TransformControls.js"></script>
 
-		<script src="static/js/libs/stats.min.js"></script>
-		<script src="static/js/libs/dat.gui.min.js"></script>
+		<script src="../static/js/libs/stats.min.js"></script>
+		<script src="../static/js/libs/dat.gui.min.js"></script>
 
 		<script>
 			/*global THREE*/
@@ -51,13 +51,15 @@
 			var camera, scene, renderer;
 			var splineHelperObjects = [];
 			var positions = [];
-			var geometry = new THREE.BoxGeometry( 20, 20, 20 );
+			var geometry = new THREE.SphereGeometry( 1, 20, 20 );
 			var transformControl;
 			var ScaleControl;
 			var ARC_SEGMENTS = 200;
 			var splineMesh;
 			var splines = {};
-			
+			var mode = true;		//For adding points
+			var figures = [];	//List of objects
+
 			init();
 			animate();
 			
@@ -146,7 +148,8 @@
 					switch ( event.keyCode ) {
 						case 87: // W
 							transformControl.setMode( "translate" );
-							break;case 69: // E
+							break;
+						case 69: // E
 							transformControl.setMode( "rotate" );
 							break;
 						case 82: // R
@@ -179,26 +182,43 @@
 					if ( hiding ) clearTimeout( hiding );
 				}
 				
-				var vector = new THREE.Vector3();
-				vector.set(
-				    ( event.clientX / window.innerWidth ) * 2 - 1,
-				    - ( event.clientY / window.innerHeight ) * 2 + 1,
-				    0.5 );
-				vector.unproject( camera );
+				window.addEventListener( 'click', function ( event ) {
+					if (mode){
+						var vector = new THREE.Vector3();
+						vector.set(
+							( event.clientX / window.innerWidth ) * 2 - 1,
+							- ( event.clientY / window.innerHeight ) * 2 + 1,
+							0.5 );
+						vector.unproject( camera );
+						
+						var dir = vector.sub( camera.position ).normalize();
+						var distance = - camera.position.z / dir.z;
+						var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+						figures.push(vector);
+						load( figures );
+						document.addEventListener( 'mousedown', onDocumentMouseDown );
+						mode = false;
+					}
+				});
 				
-				var dir = vector.sub( camera.position ).normalize();
-				var distance = - camera.position.z / dir.z;
-				var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-				console.log(vector);
-				
-				// Position of the cube
-				load( [
-						new THREE.Vector3( 0, 10, 0 ),
-						new THREE.Vector3( 20, 20, 20 )
-					] );
+				function onDocumentMouseDown( event ) {    
+					event.preventDefault();
+					var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   
+											-( event.clientY / window.innerHeight ) * 2 + 1,  
+											0.5 );     
+					var raycaster =  new THREE.Raycaster();                                        
+					raycaster.setFromCamera( mouse3D, camera );
+					var intersects = raycaster.intersectObjects( figures );
+					console.log(intersects)
+					if ( intersects.length > 0 ) {
+						intersects[ 0 ].object.material.color.setHex( Math.random() * 0xffffff );
+					}
+				}
 			}
+
+
 			function addSplineObject( position ) {
-				var material = new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } );
+				var material = new THREE.MeshLambertMaterial( { color: 0xf0f0f0 } );
 				var object = new THREE.Mesh( geometry, material );
 				if ( position ) {
 					object.position.copy( position );
