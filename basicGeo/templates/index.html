@@ -157,7 +157,21 @@
 							break;
 						}
 				});
-				
+				var settings = {
+					'Add Points' : function() {
+										window.removeEventListener( 'click', onDocumentMouseDown );
+										window.addEventListener( 'click', addPoint );
+									},
+					'Select Points' : function() { 
+										window.removeEventListener( 'click', addPoint );
+										window.addEventListener( 'click', onDocumentMouseDown );
+									}
+				}
+
+				var gui = new dat.GUI( { width: 300 } );
+				gui.add(settings, 'Add Points');
+				gui.add(settings, 'Select Points');
+
 				// Controls drag transformation
 				var dragcontrols = new THREE.DragControls( figures, camera, renderer.domElement ); //
 				dragcontrols.enabled = false;
@@ -182,34 +196,31 @@
 					if ( hiding ) clearTimeout( hiding );
 				}
 				
-				// window.addEventListener( 'click', function ( event ) {
-				// 	console.log("in");
-				// 	if (mode){
-				// 		var vector = new THREE.Vector3();
-				// 		vector.set(
-				// 			( event.clientX / window.innerWidth ) * 2 - 1,
-				// 			- ( event.clientY / window.innerHeight ) * 2 + 1,
-				// 			0.5 );
-				// 		vector.unproject( camera );
-						
-				// 		var dir = vector.sub( camera.position ).normalize();
-				// 		var distance = - camera.position.z / dir.z;
-				// 		var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-				// 		load( vector );
-				// 		mode = false;
-				// 	}
-				// });
-					load( [
-						new THREE.Vector3( 0, 10, 0 )
-					]);
 
-				window.addEventListener( 'mousedown', onDocumentMouseDown );
+				function addPoint ( event ) {
+					var vector = new THREE.Vector3();
+					vector.set(
+						( event.clientX / window.innerWidth ) * 2 - 1,
+						- ( event.clientY / window.innerHeight ) * 2 + 1,
+						0.5 );
+					vector.unproject( camera );
+					
+					var dir = vector.sub( camera.position ).normalize();
+					var distance = - camera.position.z / dir.z;
+					var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+					splineHelperObjects.push(vector);
+					load( splineHelperObjects );
+				}
+
+				// load( [
+				// 	new THREE.Vector3( 0, 10, 0 )
+				// ]);
+
 				function onDocumentMouseDown( event ) {    
 					event.preventDefault();
 					var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   
 											-( event.clientY / window.innerHeight ) * 2 + 1,  
-											0.5 );    
-					console.log(mouse3D);
+											0.5 );
 					var raycaster =  new THREE.Raycaster();                                        
 					raycaster.setFromCamera( mouse3D, camera );
 					// console.log(raycaster);
