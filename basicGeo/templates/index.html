@@ -187,18 +187,23 @@
 				var settings = {
 					'Add Points' : function() {
 										window.removeEventListener( 'click', onDocumentMouseDown );
-										window.addEventListener( 'click', addPoint );
+										window.addEventListener( 'click', addPointScene );
 									},
 					'Select Points' : function() {
 										// var selectedObject = scene.getObjectByName("TransformControl");
 										// scene.remove(selectedObject);
-										window.removeEventListener( 'click', addPoint );
+										window.removeEventListener( 'click', addPointScene );
 										window.addEventListener( 'click', onDocumentMouseDown );
 									},
 					'Draw Figure' : function() { 
 										var material = new THREE.MeshLambertMaterial( { color: 0xffffff } );
 										var line = new THREE.Line( points, material );
 										scene.add( transformControl );
+										var total = figures.length;
+										for (var i = 0; i < total; i++) { 
+										    var point = figures.pop();
+										    line.add(point);
+										}
 										scene.add(line);
 										figures.push(line);
 									}
@@ -209,7 +214,7 @@
 				gui.add(settings, 'Select Points');
 				gui.add(settings, 'Draw Figure');
 
-				function addPoint ( event ) {
+				function addPointScene ( event ) {
 					var vector = new THREE.Vector3();
 					vector.set(
 						( event.clientX / window.innerWidth ) * 2 - 1,
@@ -220,6 +225,7 @@
 					var dir = vector.sub( camera.position ).normalize();
 					var distance = - camera.position.z / dir.z;
 					var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+					console.log(vector);
 					splineHelperObjects.push(vector);
 					load( splineHelperObjects );
 				}
@@ -232,6 +238,7 @@
 					var raycaster =  new THREE.Raycaster();                                        
 					raycaster.setFromCamera( mouse3D, camera );
 					var intersects = raycaster.intersectObjects( figures );
+					console.log(intersects);
 					if ( intersects.length > 0 ) {
 						intersects[ 0 ].object.material.color.setHex( Math.random() * 0xffffff );
 						points.vertices.push(intersects[0].object.position);
@@ -287,6 +294,7 @@
 				}
 				updateSplineOutline();
 			}
+			
 			function animate() {
 				requestAnimationFrame( animate );
 				render();
