@@ -59,7 +59,8 @@
 			var splines = {};
 			var mode = true;		//For adding points
 			var figures = [];	//List of objects
-
+			var points = new THREE.Geometry();
+			
 			init();
 			animate();
 			
@@ -127,8 +128,8 @@
 				
 				// Controls transform operations
 				transformControl = new THREE.TransformControls( camera, renderer.domElement );
+				transformControl.name = "TransformControl";
 				transformControl.addEventListener( 'change', render );
-				scene.add( transformControl );
 				
 				transformControl.addEventListener( 'change', function( e ) {
 					cancelHideTransorm();
@@ -157,20 +158,7 @@
 							break;
 						}
 				});
-				var settings = {
-					'Add Points' : function() {
-										window.removeEventListener( 'click', onDocumentMouseDown );
-										window.addEventListener( 'click', addPoint );
-									},
-					'Select Points' : function() { 
-										window.removeEventListener( 'click', addPoint );
-										window.addEventListener( 'click', onDocumentMouseDown );
-									}
-				}
-
-				var gui = new dat.GUI( { width: 300 } );
-				gui.add(settings, 'Add Points');
-				gui.add(settings, 'Select Points');
+				
 
 				// Controls drag transformation
 				var dragcontrols = new THREE.DragControls( figures, camera, renderer.domElement ); //
@@ -196,6 +184,30 @@
 					if ( hiding ) clearTimeout( hiding );
 				}
 				
+				var settings = {
+					'Add Points' : function() {
+										window.removeEventListener( 'click', onDocumentMouseDown );
+										window.addEventListener( 'click', addPoint );
+									},
+					'Select Points' : function() {
+										// var selectedObject = scene.getObjectByName("TransformControl");
+										// scene.remove(selectedObject);
+										window.removeEventListener( 'click', addPoint );
+										window.addEventListener( 'click', onDocumentMouseDown );
+									},
+					'Draw Figure' : function() { 
+										var material = new THREE.MeshLambertMaterial( { color: 0xffffff } );
+										var line = new THREE.Line( points, material );
+										scene.add( transformControl );
+										scene.add(line);
+										figures.push(line);
+									}
+				}
+
+				var gui = new dat.GUI( { width: 300 } );
+				gui.add(settings, 'Add Points');
+				gui.add(settings, 'Select Points');
+				gui.add(settings, 'Draw Figure');
 
 				function addPoint ( event ) {
 					var vector = new THREE.Vector3();
@@ -212,10 +224,6 @@
 					load( splineHelperObjects );
 				}
 
-				// load( [
-				// 	new THREE.Vector3( 0, 10, 0 )
-				// ]);
-
 				function onDocumentMouseDown( event ) {    
 					event.preventDefault();
 					var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   
@@ -223,10 +231,10 @@
 											0.5 );
 					var raycaster =  new THREE.Raycaster();                                        
 					raycaster.setFromCamera( mouse3D, camera );
-					// console.log(raycaster);
 					var intersects = raycaster.intersectObjects( figures );
 					if ( intersects.length > 0 ) {
 						intersects[ 0 ].object.material.color.setHex( Math.random() * 0xffffff );
+						points.vertices.push(intersects[0].object.position);
 					}
 				}
 			}
