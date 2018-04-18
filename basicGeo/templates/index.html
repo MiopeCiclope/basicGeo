@@ -52,15 +52,14 @@
 			var splineHelperObjects = [];
 			var positions = [];
 			var geometry = new THREE.SphereGeometry( 4, 20, 20 );
-			var line = new THREE.Line();
 			var transformControl;
-			var ScaleControl;
 			var ARC_SEGMENTS = 200;
 			var splineMesh;
 			var splines = {};
 			var mode = true;		//For adding points
-			var figures = [];	//List of objects
+			var figures = [];		//List of objects
 			var points = new THREE.Geometry();
+			var tst = [];
 			
 			init();
 			animate();
@@ -179,7 +178,7 @@
 				function hideTransform() {
 					hiding = setTimeout( function() {
 						transformControl.detach( transformControl.object );
-					}, 2500 )
+					}, 2500 );
 				}
 				function cancelHideTransorm() {
 					if ( hiding ) clearTimeout( hiding );
@@ -187,6 +186,13 @@
 				
 				var settings = {
 					'Add Points' : function() {
+										
+										splineHelperObjects = [];
+										var total = figures.length;
+										for (var i = 0; i < total; i++) { 
+										    var point = figures[i].position;
+										    splineHelperObjects.push(point);
+										}
 										splineHelperObjects.push(new THREE.Vector3(0, 0, 0));
 										load( splineHelperObjects );
 									},
@@ -204,28 +210,12 @@
 										scene.add(line);
 										figures.push(line);
 									}
-				}
+				};
 
 				var gui = new dat.GUI( { width: 300 } );
 				gui.add(settings, 'Add Points');
 				gui.add(settings, 'Select Points');
 				gui.add(settings, 'Draw Figure');
-
-				function addPointScene ( event ) {
-					var vector = new THREE.Vector3();
-					vector.set(
-						( event.clientX / window.innerWidth ) * 2 - 1,
-						- ( event.clientY / window.innerHeight ) * 2 + 1,
-						0.5 );
-					vector.unproject( camera );
-					
-					var dir = vector.sub( camera.position ).normalize();
-					var distance = - camera.position.z / dir.z;
-					var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-					console.log(vector);
-					splineHelperObjects.push(vector);
-					load( splineHelperObjects );
-				}
 
 				function onDocumentMouseDown( event ) {    
 					event.preventDefault();
