@@ -52,6 +52,7 @@
 			var splineHelperObjects = [];
 			var positions = [];
 			var geometry = new THREE.SphereGeometry( 4, 20, 20 );
+			var line = new THREE.Line();
 			var transformControl;
 			var ScaleControl;
 			var ARC_SEGMENTS = 200;
@@ -90,19 +91,19 @@
 				spotlight = light;
 				
 				// Draw plane
-				var planeGeometry = new THREE.PlaneGeometry( 2000, 2000 );
-				planeGeometry.rotateX( - Math.PI / 2 );
-				var planeMaterial = new THREE.ShadowMaterial( { opacity: 0.2 } );
-				var plane = new THREE.Mesh( planeGeometry, planeMaterial );
-				plane.position.y = 0;
-				plane.receiveShadow = true;
-				scene.add( plane );
+				// var planeGeometry = new THREE.PlaneGeometry( 2000, 2000 );
+				// planeGeometry.rotateX( - Math.PI / 2 );
+				// var planeMaterial = new THREE.ShadowMaterial( { opacity: 0.2 } );
+				// var plane = new THREE.Mesh( planeGeometry, planeMaterial );
+				// plane.position.y = 0;
+				// plane.receiveShadow = true;
+				// scene.add( plane );
 				
-				var helper = new THREE.GridHelper( 2000, 100 );
-				helper.position.y = - 1;
-				helper.material.opacity = 0.25;
-				helper.material.transparent = true;
-				scene.add( helper );
+				// var helper = new THREE.GridHelper( 2000, 100 );
+				// helper.position.y = - 1;
+				// helper.material.opacity = 0.25;
+				// helper.material.transparent = true;
+				// scene.add( helper );
 				
 				// Renderer Settings
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -128,7 +129,7 @@
 				
 				// Controls transform operations
 				transformControl = new THREE.TransformControls( camera, renderer.domElement );
-				transformControl.name = "TransformControl";
+				scene.add( transformControl );
 				transformControl.addEventListener( 'change', render );
 				
 				transformControl.addEventListener( 'change', function( e ) {
@@ -153,9 +154,9 @@
 						case 69: // E
 							transformControl.setMode( "rotate" );
 							break;
-						case 82: // R
-							transformControl.setMode( "scale" );
-							break;
+						// case 82: // R
+						// 	transformControl.setMode( "scale" );
+						// 	break;
 						}
 				});
 				
@@ -186,19 +187,15 @@
 				
 				var settings = {
 					'Add Points' : function() {
-										window.removeEventListener( 'click', onDocumentMouseDown );
-										window.addEventListener( 'click', addPointScene );
+										splineHelperObjects.push(new THREE.Vector3(0, 0, 0));
+										load( splineHelperObjects );
 									},
 					'Select Points' : function() {
-										// var selectedObject = scene.getObjectByName("TransformControl");
-										// scene.remove(selectedObject);
-										window.removeEventListener( 'click', addPointScene );
 										window.addEventListener( 'click', onDocumentMouseDown );
 									},
 					'Draw Figure' : function() { 
 										var material = new THREE.MeshLambertMaterial( { color: 0xffffff } );
 										var line = new THREE.Line( points, material );
-										scene.add( transformControl );
 										var total = figures.length;
 										for (var i = 0; i < total; i++) { 
 										    var point = figures.pop();
@@ -263,7 +260,8 @@
 				figures.push( object );
 				return object;
 			}
-			function addPoint() {
+			
+			function addPoint(type) {
 				positions.push( addSplineObject().position );
 			}
 			function removePoint() {
@@ -282,7 +280,7 @@
 				}
 			}
 
-			function load( new_positions ) {
+			function load( new_positions) {
 				while ( new_positions.length > positions.length ) {
 					addPoint();
 				}
