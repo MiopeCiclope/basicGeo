@@ -1,0 +1,6 @@
+Calcular centro da figura para posicionar o control
+Descobrir um jeito de desabilitar só o scale
+Criar um parâmetro no objeto 3D para marcar que ele foi clicado
+Substituir o gui por botões 
+Criar planos opacos para projeções 
+colocar posição do ponto
