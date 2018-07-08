@@ -143,6 +143,7 @@
 				transformControl.addEventListener( 'objectChange', function( e ) {
 					updateSplineOutline();
 				} );
+				scene.add( transformControl );
 				
 				// Changes Control Mode
 				window.addEventListener( 'keydown', function ( event ) {
@@ -186,19 +187,18 @@
 				
 				var settings = {
 					'Add Points' : function() {
-										window.removeEventListener( 'click', onDocumentMouseDown );
-										window.addEventListener( 'click', addPoint );
+										addPoint();
 									},
 					'Select Points' : function() {
-										// var selectedObject = scene.getObjectByName("TransformControl");
-										// scene.remove(selectedObject);
+										var selectedObject = scene.getObjectByName("TransformControl");
+										scene.remove(selectedObject);
 										window.removeEventListener( 'click', addPoint );
 										window.addEventListener( 'click', onDocumentMouseDown );
 									},
 					'Draw Figure' : function() { 
+										scene.add(transformControl);
 										var material = new THREE.MeshLambertMaterial( { color: 0xffffff } );
 										var line = new THREE.Line( points, material );
-										scene.add( transformControl );
 										scene.add(line);
 										figures.push(line);
 									}
@@ -209,17 +209,8 @@
 				gui.add(settings, 'Select Points');
 				gui.add(settings, 'Draw Figure');
 
-				function addPoint ( event ) {
-					var vector = new THREE.Vector3();
-					vector.set(
-						( event.clientX / window.innerWidth ) * 2 - 1,
-						- ( event.clientY / window.innerHeight ) * 2 + 1,
-						0.5 );
-					vector.unproject( camera );
-					
-					var dir = vector.sub( camera.position ).normalize();
-					var distance = - camera.position.z / dir.z;
-					var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+				function addPoint () {
+					var vector = new THREE.Vector3(0, 0, 0);
 					splineHelperObjects.push(vector);
 					load( splineHelperObjects );
 				}
