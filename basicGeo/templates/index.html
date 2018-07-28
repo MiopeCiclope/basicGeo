@@ -49,16 +49,10 @@
 			// Globals
 			var container, stats;
 			var camera, scene, renderer;
-			var splineHelperObjects = [];
-			var positions = [];
 			var geometry = new THREE.SphereGeometry( 4, 20, 20 );
 			var transformControl;
-			var ScaleControl;
-			var ARC_SEGMENTS = 200;
-			var splineMesh;
-			var splines = {};
-			var mode = true;		//For adding points
-			var figures = [];	//List of objects
+			var ARC_SEGMENTS = 200;;
+			var figures = [];		//List of objects
 			var points = new THREE.Geometry();
 			
 			init();
@@ -140,9 +134,6 @@
 				transformControl.addEventListener( 'mouseUp', function( e ) {
 					delayHideTransform();
 				} );
-				transformControl.addEventListener( 'objectChange', function( e ) {
-					updateSplineOutline();
-				} );
 				scene.add( transformControl );
 				
 				// Changes Control Mode
@@ -187,7 +178,7 @@
 				
 				var settings = {
 					'Add Points' : function() {
-										addPoint();
+										addPoint(new THREE.Vector3(0, 0, 0));
 									},
 					'Select Points' : function() {
 										var selectedObject = scene.getObjectByName("TransformControl");
@@ -199,8 +190,45 @@
 										scene.add(transformControl);
 										var material = new THREE.MeshLambertMaterial( { color: 0xffffff } );
 										var line = new THREE.Line( points, material );
+										var length = figures.length;
+										var inicialVector = new THREE.Vector3(0,0,0);
+
+										// This calculation is to find the center of the object
+										for (i = 0; i < length; i++){
+											if (i != 0){
+												var temp = figures[i-1].position.clone();
+												inicialVector = temp.add(figures[i].position).clone();
+											}
+										}
 										scene.add(line);
 										figures.push(line);
+										
+										// It has to be divided in every iteration of the upper loop
+										var triangulated = inicialVector;
+										triangulated.divideScalar(2);
+										
+										// Workarroud for the add bug, it sums the position of the objects
+										var negative = triangulated.clone().divideScalar(-1);
+
+										var length2 = figures.length;
+										var obj = addPoint(triangulated);
+										for (i = 0; i < length2; i++){
+											// For some reason the add bug does not happen with the line, I guess
+											if (i != 2){
+												figures[i].position.add(negative);
+											}
+											obj.add(figures[i]);
+										}
+
+										// poping the objects to remove the transform control
+										for (i = 0; i < length2+1; i++){
+											figures.pop();
+										}
+
+										figures.push(obj);
+									},
+					'fuck' : function() {
+
 									}
 				}
 
@@ -208,12 +236,7 @@
 				gui.add(settings, 'Add Points');
 				gui.add(settings, 'Select Points');
 				gui.add(settings, 'Draw Figure');
-
-				function addPoint () {
-					var vector = new THREE.Vector3(0, 0, 0);
-					splineHelperObjects.push(vector);
-					load( splineHelperObjects );
-				}
+				gui.add(settings, 'fuck');
 
 				function onDocumentMouseDown( event ) {    
 					event.preventDefault();
@@ -230,8 +253,7 @@
 				}
 			}
 
-
-			function addSplineObject( position ) {
+			function addPoint( position ) {
 				var material = new THREE.MeshLambertMaterial( { color: 0xf0f0f0 } );
 				var object = new THREE.Mesh( geometry, material );
 				if ( position ) {
@@ -243,41 +265,11 @@
 				}
 				object.castShadow = true;
 				object.receiveShadow = true;
-				scene.add( object );
+				scene.add( object );	
 				figures.push( object );
 				return object;
 			}
-			function addPoint() {
-				positions.push( addSplineObject().position );
-			}
-			function removePoint() {
-				positions.pop();
-			}
-			function updateSplineOutline() {
-				for ( var k in splines ) {
-					var spline = splines[ k ];
-					splineMesh = spline.mesh;
-					for ( var i = 0; i < ARC_SEGMENTS; i ++ ) {
-						var p = splineMesh.geometry.vertices[ i ];
-						var t = i /  ( ARC_SEGMENTS - 1 );
-						spline.getPoint( t, p );
-					}
-					splineMesh.geometry.verticesNeedUpdate = true;
-				}
-			}
 
-			function load( new_positions ) {
-				while ( new_positions.length > positions.length ) {
-					addPoint();
-				}
-				while ( new_positions.length < positions.length ) {
-					removePoint();
-				}
-				for ( var i = 0; i < positions.length; i ++ ) {
-					positions[ i ].copy( new_positions[ i ] );
-				}
-				updateSplineOutline();
-			}
 			function animate() {
 				requestAnimationFrame( animate );
 				render();
