@@ -54,7 +54,7 @@
 			var ARC_SEGMENTS = 200;;
 			var figures = [];		//List of objects
 			var points = new THREE.Geometry();
-			
+
 			init();
 			animate();
 			
@@ -188,24 +188,25 @@
 									},
 					'Draw Figure' : function() { 
 										scene.add(transformControl);
-										var material = new THREE.MeshLambertMaterial( { color: 0xffffff } );
-										var line = new THREE.Line( points, material );
+
 										var length = figures.length;
 										var inicialVector = new THREE.Vector3(0,0,0);
+										var linePoints = new THREE.Geometry();
 
 										// This calculation is to find the center of the object
 										for (i = 0; i < length; i++){
 											if (i != 0){
 												var temp = figures[i-1].position.clone();
+												console.log(temp);
 												inicialVector = temp.add(figures[i].position).clone();
+												inicialVector = inicialVector.divideScalar(2);
 											}
+											linePoints.vertices.push(figures[i].position);
 										}
-										scene.add(line);
-										figures.push(line);
-										
+										linePoints.vertices.push(figures[0].position)
+
 										// It has to be divided in every iteration of the upper loop
 										var triangulated = inicialVector;
-										triangulated.divideScalar(2);
 										
 										// Workarroud for the add bug, it sums the position of the objects
 										var negative = triangulated.clone().divideScalar(-1);
@@ -214,12 +215,16 @@
 										var obj = addPoint(triangulated);
 										for (i = 0; i < length2; i++){
 											// For some reason the add bug does not happen with the line, I guess
-											if (i != 2){
-												figures[i].position.add(negative);
-											}
+											figures[i].position.add(negative);
 											obj.add(figures[i]);
 										}
 
+										var material = new THREE.MeshLambertMaterial( { color: 0xffffff } );
+										var line = new THREE.Line( linePoints, material );
+										scene.add(line);
+										// figures.push(line);
+
+										obj.add(line);
 										// poping the objects to remove the transform control
 										for (i = 0; i < length2+1; i++){
 											figures.pop();
